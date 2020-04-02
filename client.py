@@ -1,6 +1,11 @@
 import socket
+import sys
 
-HOST = 'localhost'
+if len(sys.argv) < 3:
+  HOST = 'localhost'
+else:
+  HOST = sys.argv[2]
+  
 PORT = 23
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
   s.connect((HOST, PORT))
