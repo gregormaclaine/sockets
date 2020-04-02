@@ -1,5 +1,4 @@
-import socketserver
-from telnetsrv.threaded import TelnetHandler, command
+import socket
 from PIL import Image
 import pyautogui
 pyautogui.FAILSAFE = True
@@ -32,16 +31,21 @@ def getDisplayData():
 
   return f'{size};{compress(pixels)}'
 
-class MyHandler(TelnetHandler):
-  WELCOME = "Connected to telnet server"
+from servercommands import ServerCommands
 
-  @command('getscreen')
-  def command_random(self, params):
-    self.writeresponse(f'({getDisplayData()})')
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+  s.bind(('', PORT))
+  print(f'Server listening on port {PORT}...')
+  s.listen(1)
+  conn, addr = s.accept()
+  with conn:
+    print('Connected with', addr)
+    def send(d):
+      conn.send(d.encode())
+    commandHandler = ServerCommands(send)
 
-class TelnetServer(socketserver.TCPServer):
-  allow_reuse_address = True
-
-server = TelnetServer(("0.0.0.0", PORT), MyHandler)
-print(f'Listening on port {PORT}...')
-server.serve_forever()
+    while True:
+      data = conn.recv(1024)
+      if not data: continue
+      words = data.decode().split(' ')
+      commandHandler.handle(words[0], words[1:])

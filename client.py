@@ -1,10 +1,14 @@
-import telnetlib
+import socket
 
-HOST = "localhost"
-print('Connecting...')
-tn = telnetlib.Telnet(HOST)
-print('Connected.')
-tn.write(b'getscreen\n')
-print('Reading data...')
-print(tn.read_all().decode('ascii'))
-print('/\\')
+HOST = 'localhost'
+PORT = 23
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+  s.connect((HOST, PORT))
+
+  while True:
+    i = ''
+    while i == '':
+      i = input('>>>')
+    s.send(i.encode())
+    data = s.recv(1024)
+    print(data.decode('ascii') + '\n')
