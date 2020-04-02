@@ -32,7 +32,9 @@ class ServerCommands:
 
   def handle(self, command, params):
     print(f'>{command} {" ".join(params)}')
-    if command not in self.commands:
+    if command in ['quit', 'shutdown']:
+      pass
+    elif command not in self.commands:
       self.send('Error: Command not recognised.')
     elif not self.isAuthenticated and self.commands[command].reqauth:
       self.send('Error: This command requires an authenticated connection')

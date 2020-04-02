@@ -33,19 +33,38 @@ def getDisplayData():
 
 from servercommands import ServerCommands
 
+shuttingdown = False
+
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
   s.bind(('', PORT))
   print(f'Server listening on port {PORT}...')
   s.listen(1)
-  conn, addr = s.accept()
-  with conn:
-    print('Connected with', addr)
-    def send(d):
-      conn.send(d.encode())
-    commandHandler = ServerCommands(send)
+  while True:
+    conn, addr = s.accept()
+    with conn:
+      print('Connected with', addr)
+      def send(d):
+        conn.send(d.encode())
+      commandHandler = ServerCommands(send)
 
-    while True:
-      data = conn.recv(1024)
-      if not data: continue
-      words = data.decode().split(' ')
-      commandHandler.handle(words[0], words[1:])
+      while True:
+        data = conn.recv(1024)
+        if not data: continue
+        words = data.decode().split(' ')
+        commandHandler.handle(words[0], words[1:])
+        if words[0] == 'quit':
+          print('Connection with', addr, 'has closed.\nWaiting for new connections...')
+          break
+        elif words[0] == 'shutdown':
+          print('Connection has requested shutdown of server.')
+          if commandHandler.isAuthenticated:
+            shuttingdown = True
+            print('Authorised. Shutting down...')
+            send('Authorised. Shutting down...')
+            break
+          else:
+            print('Not Authorised.')
+            send('Error: This command requires an authenticated connection')
+
+      if shuttingdown:
+        break
