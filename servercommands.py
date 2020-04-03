@@ -6,7 +6,7 @@ PASSWORD = os.getenv("PASSWORD")
 
 class command():
   '''Wrapper to show it is a server command'''
-  def __init__(self, name, reqauth):
+  def __init__(self, name, reqauth=False):
     self.name = name
     self.reqauth = reqauth
   
@@ -32,6 +32,7 @@ class ServerCommands:
 
   def handle(self, command, params):
     print(f'>{command} {" ".join(params)}')
+    command = command.lower()
     if command in ['quit', 'shutdown']:
       pass
     elif command not in self.commands:
@@ -41,7 +42,7 @@ class ServerCommands:
     else:
       self.commands[command](params)
 
-  @command('auth', False)
+  @command('auth')
   def auth_command(self, params):
     if len(params) == 0:
       self.send(f'Connection is {"" if self.isAuthenticated else "not "}authenticated.')
@@ -52,7 +53,7 @@ class ServerCommands:
     else:
       self.send(f'Authentication failed.')
 
-  @command('get_password', True)
+  @command('hello')
   def test_command(self, params):
-    self.send(PASSWORD)
+    self.send('Hello!')
   
